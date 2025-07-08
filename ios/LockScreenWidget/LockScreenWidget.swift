@@ -48,11 +48,11 @@ struct LockScreenWidgetEntryView : View {
 
     var body: some View {
         VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
-
-            Text("Emoji:")
-            Text(entry.emoji)
+            Text("Islamic Calendar - Lock screen widget")
+//            Text(entry.date, style: .time)
+//
+//            Text("Emoji:")
+//            Text(entry.emoji)
         }
     }
 }
