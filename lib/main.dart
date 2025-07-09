@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lock_screen/lock_screen_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _counter++;
     });
+    LockScreenService.sendCounterToNative(_counter);
   }
 
   @override
