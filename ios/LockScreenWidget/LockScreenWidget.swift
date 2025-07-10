@@ -87,8 +87,100 @@
 //    SimpleEntry(date: .now, emoji: "😀")
 //    SimpleEntry(date: .now, emoji: "🤩")
 //}
+
+//
+//import WidgetKit
+//import SwiftUI
+//
+//// MARK: - Timeline Provider
+//struct Provider: TimelineProvider {
+//    let appGroupID = "group.com.gaztec.lockwidget"
+//
+//    func placeholder(in context: Context) -> SimpleEntry {
+//        SimpleEntry(date: Date(), counter: 0)
+//    }
+//
+//    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
+//        let entry = loadEntry()
+//        completion(entry)
+//    }
+//
+//    func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> ()) {
+//        let entry = loadEntry()
+//        let timeline = Timeline(entries: [entry], policy: .never)
+//        completion(timeline)
+//    }
+//
+//    private func loadEntry() -> SimpleEntry {
+//        let defaults = UserDefaults(suiteName: appGroupID)
+//        let count = defaults?.integer(forKey: "counter") ?? 0
+//        return SimpleEntry(date: Date(), counter: count)
+//    }
+//}
+//
+//// MARK: - Timeline Entry
+//struct SimpleEntry: TimelineEntry {
+//    let date: Date
+//    let counter: Int
+//}
+//
+//// MARK: - Widget UI
+//struct LockScreenWidgetEntryView: View {
+//    var entry: Provider.Entry
+//
+//    var body: some View {
+//        VStack {
+//            Text("Count:")
+//                .font(.caption)
+//            Text("\(entry.counter)")
+//                .font(.title2)
+//                .bold()
+//        }
+//    }
+//}
+//
+//// MARK: - Widget Configuration
+//struct LockScreenWidget: Widget {
+//    let kind: String = "LockScreenWidget"
+//
+//    var body: some WidgetConfiguration {
+//        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+//            if #available(iOS 17.0, *) {
+//                LockScreenWidgetEntryView(entry: entry)
+//                    .containerBackground(.fill.tertiary, for: .widget)
+//            } else {
+//                LockScreenWidgetEntryView(entry: entry)
+//                    .padding()
+//                    .background()
+//            }
+//        }
+//        .configurationDisplayName("Counter Widget")
+//        .description("Shows the counter from the Flutter app.")
+//        .supportedFamilies([
+//            .accessoryCircular,
+//            .accessoryRectangular,
+//            .accessoryInline
+//        ])
+//    }
+//}
+//
+//// MARK: - Preview
+//#Preview(as: .accessoryRectangular) {
+//    LockScreenWidget()
+//} timeline: {
+//    SimpleEntry(date: .now, counter: 1)
+//    SimpleEntry(date: .now, counter: 42)
+//}
+
+
 import WidgetKit
 import SwiftUI
+
+// MARK: - Timeline Entry
+struct SimpleEntry: TimelineEntry {
+    let date: Date
+    let counter: Int
+}
 
 // MARK: - Timeline Provider
 struct Provider: TimelineProvider {
@@ -104,8 +196,20 @@ struct Provider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> ()) {
-        let entry = loadEntry()
-        let timeline = Timeline(entries: [entry], policy: .never)
+        let startingEntry = loadEntry()
+        let startCounter = startingEntry.counter
+        let startDate = Date()
+
+        var entries: [SimpleEntry] = []
+
+        for minuteOffset in 0..<10 {
+            if let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: startDate) {
+                let entry = SimpleEntry(date: entryDate, counter: startCounter + minuteOffset)
+                entries.append(entry)
+            }
+        }
+
+        let timeline = Timeline(entries: entries, policy: .atEnd)
         completion(timeline)
     }
 
@@ -116,13 +220,7 @@ struct Provider: TimelineProvider {
     }
 }
 
-// MARK: - Timeline Entry
-struct SimpleEntry: TimelineEntry {
-    let date: Date
-    let counter: Int
-}
-
-// MARK: - Widget UI
+// MARK: - Widget View
 struct LockScreenWidgetEntryView: View {
     var entry: Provider.Entry
 
@@ -153,7 +251,7 @@ struct LockScreenWidget: Widget {
             }
         }
         .configurationDisplayName("Counter Widget")
-        .description("Shows the counter from the Flutter app.")
+        .description("Increments every minute from Flutter’s counter.")
         .supportedFamilies([
             .accessoryCircular,
             .accessoryRectangular,
@@ -166,6 +264,6 @@ struct LockScreenWidget: Widget {
 #Preview(as: .accessoryRectangular) {
     LockScreenWidget()
 } timeline: {
-    SimpleEntry(date: .now, counter: 1)
-    SimpleEntry(date: .now, counter: 42)
+    SimpleEntry(date: .now, counter: 5)
+    SimpleEntry(date: .now.addingTimeInterval(60), counter: 6)
 }
